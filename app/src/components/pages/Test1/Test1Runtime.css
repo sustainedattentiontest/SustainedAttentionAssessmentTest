@@ -1,0 +1,108 @@
+.test1-runtime-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    background-color: #000000;
+    position: relative;
+}
+
+.shape-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 150px;
+}
+
+.small-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #ff00ff;
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.6), 0 0 20px rgba(255, 0, 255, 0.4);
+}
+
+.shape {
+    color: #ff00ff;
+}
+
+.circle {
+    width: 120px;
+    height: 120px;
+    border: 4px solid #ff00ff;
+    border-radius: 50%;
+    background-color: #ff00ff;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.6), 0 0 40px rgba(255, 0, 255, 0.4);
+}
+
+.star {
+    font-size: 120px;
+    line-height: 120px;
+    color: #ff00ff;
+    text-shadow: 0 0 20px rgba(255, 0, 255, 0.8), 0 0 40px rgba(255, 0, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-left: 70px solid transparent;
+    border-right: 70px solid transparent;
+    border-bottom: 120px solid #ff00ff;
+    filter: drop-shadow(0 0 20px rgba(255, 0, 255, 0.6)) drop-shadow(0 0 40px rgba(255, 0, 255, 0.4));
+}
+
+.debug-menu {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    padding: 1.5rem;
+    background-color: #000000;
+    border: 2px solid #ff00ff;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.3);
+    z-index: 9998;
+    min-width: 200px;
+}
+
+.debug-menu-title {
+    color: #ff00ff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    text-align: center;
+    border-bottom: 1px solid #ff00ff;
+    padding-bottom: 0.5rem;
+}
+
+.debug-menu-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.debug-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.debug-label {
+    color: #ff99ff;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.debug-value {
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+}
+
