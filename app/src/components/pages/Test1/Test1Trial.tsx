@@ -1,9 +1,13 @@
 import '../../../globalcss/TestTrial.css';
 import Test1Runtime from "./Test1Runtime";
 
-function Test1Trial() {
+interface Test1TrialProps {
+    onComplete?: () => void;
+}
+
+function Test1Trial({ onComplete }: Test1TrialProps) {
     return <div className="test-trial">
-        <Test1Runtime collectMetrics={false} trial={true} />
+        <Test1Runtime collectMetrics={false} trial={true} onComplete={onComplete} />
     </div>
 }
 

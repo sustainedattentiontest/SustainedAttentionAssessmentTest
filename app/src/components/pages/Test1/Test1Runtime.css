@@ -106,3 +106,76 @@
     text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
 }
 
+.countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+}
+
+.countdown-prefix-text {
+    font-size: 48px;
+    font-weight: 600;
+    color: #ff99ff;
+    text-shadow: 
+        0 0 15px rgba(255, 153, 255, 0.6),
+        0 0 30px rgba(255, 153, 255, 0.4);
+    margin-bottom: 2rem;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.countdown-text {
+    font-size: 120px;
+    font-weight: bold;
+    color: #ff00ff;
+    text-shadow: 
+        0 0 20px rgba(255, 0, 255, 0.8),
+        0 0 40px rgba(255, 0, 255, 0.6),
+        0 0 60px rgba(255, 0, 255, 0.4);
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.completion-message {
+    font-size: 72px;
+    font-weight: bold;
+    color: #ff00ff;
+    text-shadow: 
+        0 0 20px rgba(255, 0, 255, 0.8),
+        0 0 40px rgba(255, 0, 255, 0.6),
+        0 0 60px rgba(255, 0, 255, 0.4);
+    animation: pulse 0.5s ease-in-out;
+    text-align: center;
+}
+
