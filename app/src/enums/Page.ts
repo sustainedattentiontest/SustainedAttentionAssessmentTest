@@ -1,6 +1,7 @@
 enum Page {
     DesktopOnly,
     Questions,
+    Instructions,
     Test1,
     Test2,
     Test3,

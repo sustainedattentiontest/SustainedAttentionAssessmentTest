@@ -1,6 +1,7 @@
-import {MAX_ROUNDS, ROUND_INTERVAL_IN_MS} from "../../../constants";
+import {MAX_ROUNDS, ROUND_INTERVAL_IN_MS, MAX_TOTAL_MISSES_FOR_TRIAL} from "../../../constants";
 import {useState, useEffect, useRef} from "react";
 import './Test1Runtime.css';
+import { useSetTestMetrics } from '../../../contexts/TestMetricsContext';
 
 interface Test1RuntimeProps {
     collectMetrics: boolean;
@@ -10,20 +11,92 @@ interface Test1RuntimeProps {
 
 type ShapeType = 'circle' | 'star' | 'triangle';
 
-// Shape sequence as specified by the user (exactly 20 rounds)
-// Modified to ensure no consecutive duplicate shapes
-const SHAPE_SEQUENCE: ShapeType[] = [
-    'circle', 'star', 'triangle', 'star', 'circle',
-    'triangle', 'star', 'circle', 'triangle', 'star',
-    'circle', 'triangle', 'star', 'circle', 'triangle',
-    'star', 'circle', 'triangle', 'star', 'circle'
-];
+// Function to generate a random shape sequence for trial (infinite, no consecutive duplicates)
+const generateTrialSequence = (length: number): ShapeType[] => {
+    const shapes: ShapeType[] = ['circle', 'star', 'triangle'];
+    const sequence: ShapeType[] = [];
+    
+    let lastShape: ShapeType | null = null;
+    for (let i = 0; i < length; i++) {
+        let availableShapes = shapes;
+        if (lastShape !== null) {
+            // Exclude the last shape to prevent consecutive duplicates
+            availableShapes = shapes.filter(s => s !== lastShape);
+        }
+        const randomIndex = Math.floor(Math.random() * availableShapes.length);
+        const selectedShape = availableShapes[randomIndex];
+        sequence.push(selectedShape);
+        lastShape = selectedShape;
+    }
+    
+    return sequence;
+};
+
+// Function to generate sequence for real test: exactly 40% triangles (8 out of 20), non-consecutive
+const generateRealTestSequence = (): ShapeType[] => {
+    const sequence: ShapeType[] = new Array(20).fill(null);
+    const nonTriangleShapes: ShapeType[] = ['circle', 'star'];
+    const TRIANGLE_COUNT = 8; // 40% of 20
+    
+    // Step 1: Determine positions for triangles (ensuring non-consecutive)
+    // Use a more reliable algorithm: try placing triangles until we get exactly 8
+    const trianglePositions: number[] = [];
+    let attempts = 0;
+    const maxAttempts = 1000;
+    
+    while (trianglePositions.length < TRIANGLE_COUNT && attempts < maxAttempts) {
+        attempts++;
+        const candidatePos = Math.floor(Math.random() * 20);
+        
+        // Check if position is valid (not consecutive to existing triangles)
+        const isValid = trianglePositions.every(tp => Math.abs(tp - candidatePos) > 1);
+        
+        if (isValid && !trianglePositions.includes(candidatePos)) {
+            trianglePositions.push(candidatePos);
+        }
+    }
+    
+    // Sort positions for easier filling
+    trianglePositions.sort((a, b) => a - b);
+    
+    // Place triangles
+    trianglePositions.forEach(pos => {
+        sequence[pos] = 'triangle';
+    });
+    
+    // Step 2: Fill remaining positions with circle/star (non-consecutive)
+    for (let i = 0; i < sequence.length; i++) {
+        if (sequence[i] === null) {
+            let availableShapes = [...nonTriangleShapes];
+            
+            // Check the shape before this position to avoid consecutive duplicates
+            if (i > 0 && sequence[i - 1] !== null && sequence[i - 1] !== 'triangle') {
+                availableShapes = availableShapes.filter(s => s !== sequence[i - 1]);
+            }
+            
+            // Check the shape after this position (if it's not a triangle) to avoid consecutive duplicates
+            if (i < sequence.length - 1 && sequence[i + 1] !== null && sequence[i + 1] !== 'triangle') {
+                availableShapes = availableShapes.filter(s => s !== sequence[i + 1]);
+            }
+            
+            // If no available shapes (edge case), default to circle
+            const selectedShape = availableShapes.length > 0 
+                ? availableShapes[Math.floor(Math.random() * availableShapes.length)]
+                : 'circle';
+            
+            sequence[i] = selectedShape;
+        }
+    }
+    
+    return sequence;
+};
 
 function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) {
     const [round, setRound] = useState(1);
     const [hits, setHits] = useState(0);
     const [commissionMisses, setCommissionMisses] = useState(0);
     const [omissionMisses, setOmissionMisses] = useState(0);
+    const setTestMetrics = useSetTestMetrics();
     const [countdown, setCountdown] = useState<number | string | null>(null);
     const [countdownText, setCountdownText] = useState<string | null>(null);
     const [completionMessage, setCompletionMessage] = useState<string | null>(null);
@@ -37,6 +110,23 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
     const roundRef = useRef(1);
     const omissionCheckedForRoundRef = useRef<number>(0);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const shapeSequenceRef = useRef<ShapeType[]>([]);
+    const trialSequencePositionRef = useRef<number>(0);
+    const roundStartTimeRef = useRef<number>(performance.now()); // Track when current round started (high precision)
+    const hitReactionTimesRef = useRef<{ [round: number]: number }>({}); // Store reaction times for each hit by round
+    const roundStateRef = useRef<number>(1); // Track round to detect changes for RAF timing
+
+    // Initialize shape sequence based on trial mode
+    useEffect(() => {
+        if (trial) {
+            // For trial: generate a long sequence that we'll extend as needed
+            shapeSequenceRef.current = generateTrialSequence(100);
+            trialSequencePositionRef.current = 0;
+        } else {
+            // For real test: generate fixed sequence with exactly 8 triangles
+            shapeSequenceRef.current = generateRealTestSequence();
+        }
+    }, [trial]);
 
     // Function to reset trial state
     const resetTrial = () => {
@@ -57,6 +147,15 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
         spacePressedForRoundRef.current = 0;
         roundRef.current = 1;
         omissionCheckedForRoundRef.current = 0;
+        trialSequencePositionRef.current = 0;
+        roundStartTimeRef.current = performance.now();
+        hitReactionTimesRef.current = {};
+        roundStateRef.current = 1;
+        
+        // Regenerate trial sequence
+        if (trial) {
+            shapeSequenceRef.current = generateTrialSequence(100);
+        }
         
         // Clear any intervals
         if (intervalRef.current) {
@@ -134,15 +233,47 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
         roundRef.current = round;
     }, [round]);
 
+    // Set round start time when shape is actually visible on screen (after render)
     useEffect(() => {
-        if (!hasStarted) return;
+        if (hasStarted && round >= 1) {
+            // Use double requestAnimationFrame to ensure paint is complete
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    roundStartTimeRef.current = performance.now();
+                });
+            });
+        }
+    }, [round, hasStarted]);
+
+    useEffect(() => {
+        if (!hasStarted) {
+            // Initialize round start time when test starts (will be set when shape actually renders)
+            return;
+        }
 
         intervalRef.current = setInterval(() => {
             setRound(prevRound => {
                 // Check for omission miss: if previous round was triangle and space wasn't pressed
                 // Only check once per round to prevent double counting
                 if (prevRound >= 1 && omissionCheckedForRoundRef.current !== prevRound) {
-                    const prevShape = SHAPE_SEQUENCE[(prevRound - 1) % SHAPE_SEQUENCE.length];
+                    const prevShapeIndex = prevRound - 1;
+                    let prevShape: ShapeType;
+                    if (trial) {
+                        // For trial: extend sequence if needed
+                        if (prevShapeIndex >= shapeSequenceRef.current.length) {
+                            const extension = generateTrialSequence(50);
+                            const lastShape = shapeSequenceRef.current[shapeSequenceRef.current.length - 1];
+                            // Ensure first shape of extension is not the same as last
+                            if (extension[0] === lastShape) {
+                                extension[0] = extension[0] === 'circle' ? 'star' : 'circle';
+                            }
+                            shapeSequenceRef.current = [...shapeSequenceRef.current, ...extension];
+                        }
+                        prevShape = shapeSequenceRef.current[prevShapeIndex];
+                    } else {
+                        prevShape = shapeSequenceRef.current[prevShapeIndex];
+                    }
+                    
                     if (prevShape === 'triangle' && spacePressedForRoundRef.current !== prevRound) {
                         const newOmissionMisses = omissionMissesRef.current + 1;
                         omissionMissesRef.current = newOmissionMisses;
@@ -151,7 +282,7 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                         // Check if trial should restart due to too many misses
                         if (trial) {
                             const totalMisses = commissionMissesRef.current + newOmissionMisses;
-                            if (totalMisses >= 3) {
+                            if (totalMisses >= MAX_TOTAL_MISSES_FOR_TRIAL) {
                                 // Show restart message and reset trial
                                 if (intervalRef.current) {
                                     clearInterval(intervalRef.current);
@@ -170,11 +301,20 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                 
                 const newRound = prevRound + 1;
                 roundRef.current = newRound;
+                roundStateRef.current = newRound;
+                // Round start time will be set when shape actually renders (see useEffect below)
                 if (!trial && newRound > MAX_ROUNDS) {
                     if (intervalRef.current) {
                         clearInterval(intervalRef.current);
                         intervalRef.current = null;
                     }
+                    // Store metrics in context for real test completion
+                    setTestMetrics('test1', {
+                        hits: hitsRef.current,
+                        commissionMisses: commissionMissesRef.current,
+                        omissionMisses: omissionMissesRef.current,
+                        hitReactionTimes: { ...hitReactionTimesRef.current }
+                    });
                     // Show completion message instead of alert
                     setCompletionMessage("Test is done!");
                     // Call onComplete callback after showing message
@@ -187,7 +327,7 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                 }
                 return newRound;
             });
-        }, ROUND_INTERVAL_IN_MS);
+    }, ROUND_INTERVAL_IN_MS);
 
         return () => {
             if (intervalRef.current) {
@@ -216,15 +356,38 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                 playBeep(400, 50);
                 
                 // Get current shape based on current round (1-indexed, so subtract 1 for array index)
-                const currentShape = currentRound >= 1 
-                    ? SHAPE_SEQUENCE[(currentRound - 1) % SHAPE_SEQUENCE.length]
-                    : null;
+                let currentShape: ShapeType | null = null;
+                if (currentRound >= 1) {
+                    const shapeIndex = currentRound - 1;
+                    if (trial) {
+                        // For trial: extend sequence if needed
+                        if (shapeIndex >= shapeSequenceRef.current.length) {
+                            const extension = generateTrialSequence(50);
+                            const lastShape = shapeSequenceRef.current[shapeSequenceRef.current.length - 1];
+                            // Ensure first shape of extension is not the same as last
+                            if (extension[0] === lastShape) {
+                                extension[0] = extension[0] === 'circle' ? 'star' : 'circle';
+                            }
+                            shapeSequenceRef.current = [...shapeSequenceRef.current, ...extension];
+                        }
+                        currentShape = shapeSequenceRef.current[shapeIndex];
+                    } else {
+                        currentShape = shapeIndex < shapeSequenceRef.current.length 
+                            ? shapeSequenceRef.current[shapeIndex]
+                            : null;
+                    }
+                }
 
                 // Check if triangle is showing and record hit
                 if (currentShape === 'triangle') {
                     const newHits = hitsRef.current + 1;
                     hitsRef.current = newHits;
                     setHits(newHits);
+                    
+                    // Calculate and store reaction time for this hit (using high precision timing)
+                    const currentTime = performance.now();
+                    const reactionTime = currentTime - roundStartTimeRef.current;
+                    hitReactionTimesRef.current[currentRound] = Math.round(reactionTime); // Round to ms for storage
                     
                     // Only finish trial at 3 hits when trial=true
                     if (trial && newHits === 3) {
@@ -247,7 +410,7 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                     // Check if trial should restart due to too many misses
                     if (trial) {
                         const totalMisses = newCommissionMisses + omissionMissesRef.current;
-                        if (totalMisses >= 3) {
+                        if (totalMisses >= MAX_TOTAL_MISSES_FOR_TRIAL) {
                             // Show restart message and reset trial
                             if (intervalRef.current) {
                                 clearInterval(intervalRef.current);
@@ -270,9 +433,28 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
         };
     }, [trial, onComplete]);
 
-    const currentShape = round >= 1
-        ? SHAPE_SEQUENCE[(round - 1) % SHAPE_SEQUENCE.length]
-        : null;
+    // Get current shape based on round
+    let currentShape: ShapeType | null = null;
+    if (round >= 1) {
+        const shapeIndex = round - 1;
+        if (trial) {
+            // For trial: extend sequence if needed
+            if (shapeIndex >= shapeSequenceRef.current.length) {
+                const extension = generateTrialSequence(50);
+                const lastShape = shapeSequenceRef.current[shapeSequenceRef.current.length - 1];
+                // Ensure first shape of extension is not the same as last
+                if (extension[0] === lastShape) {
+                    extension[0] = extension[0] === 'circle' ? 'star' : 'circle';
+                }
+                shapeSequenceRef.current = [...shapeSequenceRef.current, ...extension];
+            }
+            currentShape = shapeSequenceRef.current[shapeIndex];
+        } else {
+            currentShape = shapeIndex < shapeSequenceRef.current.length 
+                ? shapeSequenceRef.current[shapeIndex]
+                : null;
+        }
+    }
 
     const totalMisses = commissionMisses + omissionMisses;
 
@@ -350,6 +532,23 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                             <span className="debug-label">Current Shape:</span>
                             <span className="debug-value">{currentShape || 'None'}</span>
                         </div>
+                        {Object.keys(hitReactionTimesRef.current).length > 0 && (
+                            <div style={{ marginTop: '0.75rem', borderTop: '1px solid #ff66ff', paddingTop: '0.75rem' }}>
+                                <div style={{ color: '#ff99ff', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                    Reaction Times (ms):
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.875rem' }}>
+                                    {Object.entries(hitReactionTimesRef.current)
+                                        .sort(([a], [b]) => Number(a) - Number(b))
+                                        .map(([roundNum, reactionTime]) => (
+                                            <div key={roundNum} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <span style={{ color: '#ff99ff' }}>Round {roundNum}:</span>
+                                                <span style={{ color: '#fff' }}>{reactionTime}ms</span>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

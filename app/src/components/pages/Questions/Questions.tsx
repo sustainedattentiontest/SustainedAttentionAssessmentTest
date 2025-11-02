@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import './Questions.css';
 import { QuestionsDAO } from '../../../dao/QuestionsDAO';
 import { useSetQuestionsDAO } from '../../../contexts/QuestionsDAOContext';
-import {usePageContext} from "../../../contexts/PageContext";
+import { usePageContext } from "../../../contexts/PageContext";
+import { useSetParticipantData } from '../../../contexts/ParticipantContext';
+import Page from '../../../enums/Page';
 
 interface QuestionsProps {
   onComplete?: () => void;
@@ -21,6 +23,7 @@ function Questions({ onComplete }: QuestionsProps) {
   }>({});
   const setQuestionsDAO = useSetQuestionsDAO();
   const pageContext = usePageContext();
+  const setParticipantData = useSetParticipantData();
 
   const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -81,8 +84,16 @@ function Questions({ onComplete }: QuestionsProps) {
         gender
       );
 
-      // Store in context
+      // Store in QuestionsDAO context
       setQuestionsDAO(questionsDAO);
+
+      // Store in ParticipantContext
+      setParticipantData({
+        adhdDiagnosed,
+        attentionalDifficulties,
+        age,
+        gender
+      });
 
       // Serialize to JSON
       const jsonData = questionsDAO.toJSON();
@@ -91,7 +102,8 @@ function Questions({ onComplete }: QuestionsProps) {
       console.log('Questions Data:', jsonData);
       console.log('Questions Data (parsed):', JSON.parse(jsonData));
       
-      pageContext.nextPage();
+      // Navigate to Instructions page
+      pageContext.setPage(Page.Instructions);
     }
   };
 
