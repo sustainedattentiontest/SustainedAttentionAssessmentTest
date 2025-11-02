@@ -1,5 +1,5 @@
 import '../../../globalcss/TestReal.css';
-import Test1Runtime from "./Test1Runtime";
+import ShapeTestRuntime from "../testRuntimes/ShapeTestRuntime";
 import { usePageContext } from "../../../contexts/PageContext";
 import Page from "../../../enums/Page";
 
@@ -13,7 +13,7 @@ function Test1Real() {
 
     return (
         <div className="test-real">
-            <Test1Runtime collectMetrics={true} trial={false} onComplete={handleComplete} />
+            <ShapeTestRuntime trial={false} onComplete={handleComplete} goStimulusShape="triangle" testKey="test1" />
         </div>
     );
 }

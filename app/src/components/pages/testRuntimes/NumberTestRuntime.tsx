@@ -1,97 +1,99 @@
 import {MAX_ROUNDS, ROUND_INTERVAL_IN_MS, MAX_TOTAL_MISSES_FOR_TRIAL} from "../../../constants";
 import {useState, useEffect, useRef} from "react";
-import './Test1Runtime.css';
+import './NumberTestRuntime.css';
 import { useSetTestMetrics } from '../../../contexts/TestMetricsContext';
 
-interface Test1RuntimeProps {
-    collectMetrics: boolean;
+type NumberType = '1' | '2' | '3';
+
+interface NumberTestRuntimeProps {
     trial: boolean;
     onComplete?: () => void;
+    goStimulusNumber: NumberType; // The number that should trigger a hit
+    testKey: string; // The key to use when storing metrics in TestMetrics context (e.g., 'test4', 'test5')
 }
 
-type ShapeType = 'circle' | 'star' | 'triangle';
-
-// Function to generate a random shape sequence for trial (infinite, no consecutive duplicates)
-const generateTrialSequence = (length: number): ShapeType[] => {
-    const shapes: ShapeType[] = ['circle', 'star', 'triangle'];
-    const sequence: ShapeType[] = [];
+// Function to generate a random number sequence for trial (infinite, no consecutive duplicates)
+const generateTrialSequence = (length: number, goStimulusNumber: NumberType): NumberType[] => {
+    const numbers: NumberType[] = ['1', '2', '3'];
+    const sequence: NumberType[] = [];
     
-    let lastShape: ShapeType | null = null;
+    let lastNumber: NumberType | null = null;
     for (let i = 0; i < length; i++) {
-        let availableShapes = shapes;
-        if (lastShape !== null) {
-            // Exclude the last shape to prevent consecutive duplicates
-            availableShapes = shapes.filter(s => s !== lastShape);
+        let availableNumbers = numbers;
+        if (lastNumber !== null) {
+            // Exclude the last number to prevent consecutive duplicates
+            availableNumbers = numbers.filter(n => n !== lastNumber);
         }
-        const randomIndex = Math.floor(Math.random() * availableShapes.length);
-        const selectedShape = availableShapes[randomIndex];
-        sequence.push(selectedShape);
-        lastShape = selectedShape;
+        const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+        const selectedNumber = availableNumbers[randomIndex];
+        sequence.push(selectedNumber);
+        lastNumber = selectedNumber;
     }
     
     return sequence;
 };
 
-// Function to generate sequence for real test: exactly 40% triangles (8 out of 20), non-consecutive
-const generateRealTestSequence = (): ShapeType[] => {
-    const sequence: ShapeType[] = new Array(20).fill(null);
-    const nonTriangleShapes: ShapeType[] = ['circle', 'star'];
-    const TRIANGLE_COUNT = 8; // 40% of 20
+// Function to generate sequence for real test: exactly 40% goStimulusNumber (8 out of 20), non-consecutive
+const generateRealTestSequence = (goStimulusNumber: NumberType): NumberType[] => {
+    const sequence: NumberType[] = new Array(20).fill(null);
+    const allNumbers: NumberType[] = ['1', '2', '3'];
+    const nonGoStimulusNumbers: NumberType[] = allNumbers.filter(n => n !== goStimulusNumber) as NumberType[];
+    const GO_STIMULUS_COUNT = 8; // 40% of 20
     
-    // Step 1: Determine positions for triangles (ensuring non-consecutive)
-    // Use a more reliable algorithm: try placing triangles until we get exactly 8
-    const trianglePositions: number[] = [];
+    // Step 1: Determine positions for goStimulusNumber (ensuring non-consecutive)
+    // Use a more reliable algorithm: try placing goStimulusNumber until we get exactly 8
+    const goStimulusPositions: number[] = [];
     let attempts = 0;
     const maxAttempts = 1000;
     
-    while (trianglePositions.length < TRIANGLE_COUNT && attempts < maxAttempts) {
+    while (goStimulusPositions.length < GO_STIMULUS_COUNT && attempts < maxAttempts) {
         attempts++;
         const candidatePos = Math.floor(Math.random() * 20);
         
-        // Check if position is valid (not consecutive to existing triangles)
-        const isValid = trianglePositions.every(tp => Math.abs(tp - candidatePos) > 1);
+        // Check if position is valid (not consecutive to existing goStimulusNumber)
+        const isValid = goStimulusPositions.every(gp => Math.abs(gp - candidatePos) > 1);
         
-        if (isValid && !trianglePositions.includes(candidatePos)) {
-            trianglePositions.push(candidatePos);
+        if (isValid && !goStimulusPositions.includes(candidatePos)) {
+            goStimulusPositions.push(candidatePos);
         }
     }
     
     // Sort positions for easier filling
-    trianglePositions.sort((a, b) => a - b);
+    goStimulusPositions.sort((a, b) => a - b);
     
-    // Place triangles
-    trianglePositions.forEach(pos => {
-        sequence[pos] = 'triangle';
+    // Place goStimulusNumber
+    goStimulusPositions.forEach(pos => {
+        sequence[pos] = goStimulusNumber;
     });
     
-    // Step 2: Fill remaining positions with circle/star (non-consecutive)
+    // Step 2: Fill remaining positions with other numbers (non-consecutive)
     for (let i = 0; i < sequence.length; i++) {
         if (sequence[i] === null) {
-            let availableShapes = [...nonTriangleShapes];
+            let availableNumbers = [...nonGoStimulusNumbers];
             
-            // Check the shape before this position to avoid consecutive duplicates
-            if (i > 0 && sequence[i - 1] !== null && sequence[i - 1] !== 'triangle') {
-                availableShapes = availableShapes.filter(s => s !== sequence[i - 1]);
+            // Check the number before this position to avoid consecutive duplicates
+            if (i > 0 && sequence[i - 1] !== null && sequence[i - 1] !== goStimulusNumber) {
+                availableNumbers = availableNumbers.filter(n => n !== sequence[i - 1]);
             }
             
-            // Check the shape after this position (if it's not a triangle) to avoid consecutive duplicates
-            if (i < sequence.length - 1 && sequence[i + 1] !== null && sequence[i + 1] !== 'triangle') {
-                availableShapes = availableShapes.filter(s => s !== sequence[i + 1]);
+            // Check the number after this position (if it's not goStimulusNumber) to avoid consecutive duplicates
+            if (i < sequence.length - 1 && sequence[i + 1] !== null && sequence[i + 1] !== goStimulusNumber) {
+                availableNumbers = availableNumbers.filter(n => n !== sequence[i + 1]);
             }
             
-            // If no available shapes (edge case), default to circle
-            const selectedShape = availableShapes.length > 0 
-                ? availableShapes[Math.floor(Math.random() * availableShapes.length)]
-                : 'circle';
+            // If no available numbers (edge case), default to '1'
+            const selectedNumber = availableNumbers.length > 0 
+                ? availableNumbers[Math.floor(Math.random() * availableNumbers.length)]
+                : '1';
             
-            sequence[i] = selectedShape;
+            sequence[i] = selectedNumber;
         }
     }
     
     return sequence;
 };
 
-function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) {
+function NumberTestRuntime({ trial, onComplete, goStimulusNumber, testKey }: NumberTestRuntimeProps) {
     const [round, setRound] = useState(1);
     const [hits, setHits] = useState(0);
     const [commissionMisses, setCommissionMisses] = useState(0);
@@ -110,23 +112,23 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
     const roundRef = useRef(1);
     const omissionCheckedForRoundRef = useRef<number>(0);
     const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    const shapeSequenceRef = useRef<ShapeType[]>([]);
+    const numberSequenceRef = useRef<NumberType[]>([]);
     const trialSequencePositionRef = useRef<number>(0);
     const roundStartTimeRef = useRef<number>(performance.now()); // Track when current round started (high precision)
     const hitReactionTimesRef = useRef<{ [round: number]: number }>({}); // Store reaction times for each hit by round
     const roundStateRef = useRef<number>(1); // Track round to detect changes for RAF timing
 
-    // Initialize shape sequence based on trial mode
+    // Initialize number sequence based on trial mode
     useEffect(() => {
         if (trial) {
             // For trial: generate a long sequence that we'll extend as needed
-            shapeSequenceRef.current = generateTrialSequence(100);
+            numberSequenceRef.current = generateTrialSequence(100, goStimulusNumber);
             trialSequencePositionRef.current = 0;
         } else {
-            // For real test: generate fixed sequence with exactly 8 triangles
-            shapeSequenceRef.current = generateRealTestSequence();
+            // For real test: generate fixed sequence with exactly 8 goStimulusNumber
+            numberSequenceRef.current = generateRealTestSequence(goStimulusNumber);
         }
-    }, [trial]);
+    }, [trial, goStimulusNumber]);
 
     // Function to reset trial state
     const resetTrial = () => {
@@ -154,7 +156,7 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
         
         // Regenerate trial sequence
         if (trial) {
-            shapeSequenceRef.current = generateTrialSequence(100);
+            numberSequenceRef.current = generateTrialSequence(100, goStimulusNumber);
         }
         
         // Clear any intervals
@@ -233,7 +235,7 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
         roundRef.current = round;
     }, [round]);
 
-    // Set round start time when shape is actually visible on screen (after render)
+    // Set round start time when number is actually visible on screen (after render)
     useEffect(() => {
         if (hasStarted && round >= 1) {
             // Use double requestAnimationFrame to ensure paint is complete
@@ -247,34 +249,34 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
 
     useEffect(() => {
         if (!hasStarted) {
-            // Initialize round start time when test starts (will be set when shape actually renders)
+            // Initialize round start time when test starts (will be set when number actually renders)
             return;
         }
 
         intervalRef.current = setInterval(() => {
             setRound(prevRound => {
-                // Check for omission miss: if previous round was triangle and space wasn't pressed
+                // Check for omission miss: if previous round was goStimulusNumber and space wasn't pressed
                 // Only check once per round to prevent double counting
                 if (prevRound >= 1 && omissionCheckedForRoundRef.current !== prevRound) {
-                    const prevShapeIndex = prevRound - 1;
-                    let prevShape: ShapeType;
+                    const prevNumberIndex = prevRound - 1;
+                    let prevNumber: NumberType;
                     if (trial) {
                         // For trial: extend sequence if needed
-                        if (prevShapeIndex >= shapeSequenceRef.current.length) {
-                            const extension = generateTrialSequence(50);
-                            const lastShape = shapeSequenceRef.current[shapeSequenceRef.current.length - 1];
-                            // Ensure first shape of extension is not the same as last
-                            if (extension[0] === lastShape) {
-                                extension[0] = extension[0] === 'circle' ? 'star' : 'circle';
+                        if (prevNumberIndex >= numberSequenceRef.current.length) {
+                            const extension = generateTrialSequence(50, goStimulusNumber);
+                            const lastNumber = numberSequenceRef.current[numberSequenceRef.current.length - 1];
+                            // Ensure first number of extension is not the same as last
+                            if (extension[0] === lastNumber) {
+                                extension[0] = extension[0] === '1' ? '2' : '1';
                             }
-                            shapeSequenceRef.current = [...shapeSequenceRef.current, ...extension];
+                            numberSequenceRef.current = [...numberSequenceRef.current, ...extension];
                         }
-                        prevShape = shapeSequenceRef.current[prevShapeIndex];
+                        prevNumber = numberSequenceRef.current[prevNumberIndex];
                     } else {
-                        prevShape = shapeSequenceRef.current[prevShapeIndex];
+                        prevNumber = numberSequenceRef.current[prevNumberIndex];
                     }
                     
-                    if (prevShape === 'triangle' && spacePressedForRoundRef.current !== prevRound) {
+                    if (prevNumber === goStimulusNumber && spacePressedForRoundRef.current !== prevRound) {
                         const newOmissionMisses = omissionMissesRef.current + 1;
                         omissionMissesRef.current = newOmissionMisses;
                         setOmissionMisses(newOmissionMisses);
@@ -302,14 +304,14 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                 const newRound = prevRound + 1;
                 roundRef.current = newRound;
                 roundStateRef.current = newRound;
-                // Round start time will be set when shape actually renders (see useEffect below)
+                // Round start time will be set when number actually renders (see useEffect below)
                 if (!trial && newRound > MAX_ROUNDS) {
                     if (intervalRef.current) {
                         clearInterval(intervalRef.current);
                         intervalRef.current = null;
                     }
                     // Store metrics in context for real test completion
-                    setTestMetrics('test1', {
+                    setTestMetrics(testKey, {
                         hits: hitsRef.current,
                         commissionMisses: commissionMissesRef.current,
                         omissionMisses: omissionMissesRef.current,
@@ -334,7 +336,7 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                 clearInterval(intervalRef.current);
             }
         };
-    }, [trial, hasStarted, onComplete]);
+    }, [trial, hasStarted, onComplete, goStimulusNumber, testKey, setTestMetrics]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -355,31 +357,31 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                 // Play soft sound to register space press
                 playBeep(400, 50);
                 
-                // Get current shape based on current round (1-indexed, so subtract 1 for array index)
-                let currentShape: ShapeType | null = null;
+                // Get current number based on current round (1-indexed, so subtract 1 for array index)
+                let currentNumber: NumberType | null = null;
                 if (currentRound >= 1) {
-                    const shapeIndex = currentRound - 1;
+                    const numberIndex = currentRound - 1;
                     if (trial) {
                         // For trial: extend sequence if needed
-                        if (shapeIndex >= shapeSequenceRef.current.length) {
-                            const extension = generateTrialSequence(50);
-                            const lastShape = shapeSequenceRef.current[shapeSequenceRef.current.length - 1];
-                            // Ensure first shape of extension is not the same as last
-                            if (extension[0] === lastShape) {
-                                extension[0] = extension[0] === 'circle' ? 'star' : 'circle';
+                        if (numberIndex >= numberSequenceRef.current.length) {
+                            const extension = generateTrialSequence(50, goStimulusNumber);
+                            const lastNumber = numberSequenceRef.current[numberSequenceRef.current.length - 1];
+                            // Ensure first number of extension is not the same as last
+                            if (extension[0] === lastNumber) {
+                                extension[0] = extension[0] === '1' ? '2' : '1';
                             }
-                            shapeSequenceRef.current = [...shapeSequenceRef.current, ...extension];
+                            numberSequenceRef.current = [...numberSequenceRef.current, ...extension];
                         }
-                        currentShape = shapeSequenceRef.current[shapeIndex];
+                        currentNumber = numberSequenceRef.current[numberIndex];
                     } else {
-                        currentShape = shapeIndex < shapeSequenceRef.current.length 
-                            ? shapeSequenceRef.current[shapeIndex]
+                        currentNumber = numberIndex < numberSequenceRef.current.length 
+                            ? numberSequenceRef.current[numberIndex]
                             : null;
                     }
                 }
 
-                // Check if triangle is showing and record hit
-                if (currentShape === 'triangle') {
+                // Check if goStimulusNumber is showing and record hit
+                if (currentNumber === goStimulusNumber) {
                     const newHits = hitsRef.current + 1;
                     hitsRef.current = newHits;
                     setHits(newHits);
@@ -401,8 +403,8 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                             }, 2000);
                         }
                     }
-                } else if (currentShape !== null) {
-                    // Space pressed on wrong shape - record commission miss
+                } else if (currentNumber !== null) {
+                    // Space pressed on wrong number - record commission miss
                     const newCommissionMisses = commissionMissesRef.current + 1;
                     commissionMissesRef.current = newCommissionMisses;
                     setCommissionMisses(newCommissionMisses);
@@ -431,52 +433,42 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [trial, onComplete]);
+    }, [trial, onComplete, goStimulusNumber]);
 
-    // Get current shape based on round
-    let currentShape: ShapeType | null = null;
+    // Get current number based on round
+    let currentNumber: NumberType | null = null;
     if (round >= 1) {
-        const shapeIndex = round - 1;
+        const numberIndex = round - 1;
         if (trial) {
             // For trial: extend sequence if needed
-            if (shapeIndex >= shapeSequenceRef.current.length) {
-                const extension = generateTrialSequence(50);
-                const lastShape = shapeSequenceRef.current[shapeSequenceRef.current.length - 1];
-                // Ensure first shape of extension is not the same as last
-                if (extension[0] === lastShape) {
-                    extension[0] = extension[0] === 'circle' ? 'star' : 'circle';
+            if (numberIndex >= numberSequenceRef.current.length) {
+                const extension = generateTrialSequence(50, goStimulusNumber);
+                const lastNumber = numberSequenceRef.current[numberSequenceRef.current.length - 1];
+                // Ensure first number of extension is not the same as last
+                if (extension[0] === lastNumber) {
+                    extension[0] = extension[0] === '1' ? '2' : '1';
                 }
-                shapeSequenceRef.current = [...shapeSequenceRef.current, ...extension];
+                numberSequenceRef.current = [...numberSequenceRef.current, ...extension];
             }
-            currentShape = shapeSequenceRef.current[shapeIndex];
+            currentNumber = numberSequenceRef.current[numberIndex];
         } else {
-            currentShape = shapeIndex < shapeSequenceRef.current.length 
-                ? shapeSequenceRef.current[shapeIndex]
+            currentNumber = numberIndex < numberSequenceRef.current.length 
+                ? numberSequenceRef.current[numberIndex]
                 : null;
         }
     }
 
     const totalMisses = commissionMisses + omissionMisses;
 
-    const renderShape = () => {
-        if (!currentShape) return null;
-
-        switch (currentShape) {
-            case 'circle':
-                return <div className="shape circle"></div>;
-            case 'star':
-                return <div className="shape star">★</div>;
-            case 'triangle':
-                return <div className="shape triangle"></div>;
-            default:
-                return null;
-        }
+    const renderNumber = () => {
+        if (!currentNumber) return null;
+        return <div className="number">{currentNumber}</div>;
     };
 
     const isDev = process.env.REACT_APP_IS_DEV === 'true';
 
     return (
-        <div className="test1-runtime-container">
+        <div className="number-runtime-container">
             {(countdown !== null || countdownText !== null) && (
                 <div className="countdown-overlay">
                     {countdownText && (
@@ -498,9 +490,9 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                 </div>
             )}
             {hasStarted && !completionMessage && !restartMessage && (
-                <div className="shape-wrapper">
+                <div className="number-wrapper">
                     <div className="small-circle"></div>
-                    {renderShape()}
+                    {renderNumber()}
                     <div className="small-circle"></div>
                 </div>
             )}
@@ -529,12 +521,16 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                             <span className="debug-value">{round}</span>
                         </div>
                         <div className="debug-stat">
-                            <span className="debug-label">Current Shape:</span>
-                            <span className="debug-value">{currentShape || 'None'}</span>
+                            <span className="debug-label">Current Number:</span>
+                            <span className="debug-value">{currentNumber || 'None'}</span>
+                        </div>
+                        <div className="debug-stat">
+                            <span className="debug-label">Go Stimulus:</span>
+                            <span className="debug-value">{goStimulusNumber}</span>
                         </div>
                         {Object.keys(hitReactionTimesRef.current).length > 0 && (
-                            <div style={{ marginTop: '0.75rem', borderTop: '1px solid #ff66ff', paddingTop: '0.75rem' }}>
-                                <div style={{ color: '#ff99ff', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
+                            <div style={{ marginTop: '0.75rem', borderTop: '1px solid #ffff00', paddingTop: '0.75rem' }}>
+                                <div style={{ color: '#ffff99', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>
                                     Reaction Times (ms):
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.875rem' }}>
@@ -542,7 +538,7 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
                                         .sort(([a], [b]) => Number(a) - Number(b))
                                         .map(([roundNum, reactionTime]) => (
                                             <div key={roundNum} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                <span style={{ color: '#ff99ff' }}>Round {roundNum}:</span>
+                                                <span style={{ color: '#ffff99' }}>Round {roundNum}:</span>
                                                 <span style={{ color: '#fff' }}>{reactionTime}ms</span>
                                             </div>
                                         ))}
@@ -556,4 +552,5 @@ function Test1Runtime({ collectMetrics, trial, onComplete }: Test1RuntimeProps) 
     );
 }
 
-export default Test1Runtime;
+export default NumberTestRuntime;
+

@@ -13,7 +13,7 @@ function Test6() {
             case TestPhase.Explanation:
                 return <Test6Explanation onContinue={() => setPhase(TestPhase.Trial)} />;
             case TestPhase.Trial:
-                return <Test6Trial />;
+                return <Test6Trial onComplete={() => setPhase(TestPhase.Real)} />;
             case TestPhase.Real:
                 return <Test6Real />;
             default:

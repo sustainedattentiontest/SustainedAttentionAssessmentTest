@@ -7,7 +7,17 @@ interface Test10ExplanationProps {
 function Test10Explanation({ onContinue }: Test10ExplanationProps) {
     return (
         <>
-            <h1 className="test-explanation">Test10Explanation</h1>
+            <h1 className="test-explanation">
+                <br/>
+                <br/>
+                The trial exercise is about to begin:
+                <br/>
+                <br/>
+                You will be presented <b>4</b> numbers, every time and only when the number <b className={'yellow-text'}>3</b> does not pop up, click the spacebar.
+                <br/>
+                <br/>
+                Press continue to begin the trial exercise.
+            </h1>
             <button 
                 className="test-explanation-button" 
                 onClick={onContinue}

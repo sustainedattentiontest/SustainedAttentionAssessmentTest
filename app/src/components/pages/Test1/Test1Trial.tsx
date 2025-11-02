@@ -1,5 +1,5 @@
 import '../../../globalcss/TestTrial.css';
-import Test1Runtime from "./Test1Runtime";
+import ShapeTestRuntime from "../testRuntimes/ShapeTestRuntime";
 
 interface Test1TrialProps {
     onComplete?: () => void;
@@ -7,7 +7,7 @@ interface Test1TrialProps {
 
 function Test1Trial({ onComplete }: Test1TrialProps) {
     return <div className="test-trial">
-        <Test1Runtime collectMetrics={false} trial={true} onComplete={onComplete} />
+        <ShapeTestRuntime trial={true} onComplete={onComplete} goStimulusShape="triangle" testKey="test1" />
     </div>
 }
 

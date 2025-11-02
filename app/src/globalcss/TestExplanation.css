@@ -14,6 +14,14 @@
   margin: 0 120px 50px 120px;
 }
 
+.pink-text {
+    color: #ff66ff;
+}
+
+.yellow-text {
+    color: #ffff00;
+}
+
 .test-explanation-button {
   padding: 0.875rem 2.5rem;
   font-size: 1rem;

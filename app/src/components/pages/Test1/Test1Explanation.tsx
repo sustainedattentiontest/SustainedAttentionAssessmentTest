@@ -11,7 +11,7 @@ function Test1Explanation({ onContinue }: Test1ExplanationProps) {
                 <br />
                 <br />
                 You will be presented 3 shapes<br />
-                <br />Every time and only when the triangle pops up, click the spacebar.
+                <br />Every time and only when the <b className={'pink-text'}>TRIANGLE</b> pops up, click the spacebar.
                 If not, wait for the shape to change.
                 <br />
                 <br />

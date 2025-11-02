@@ -13,6 +13,7 @@ import Test7 from "../pages/Test7/Test7";
 import Test8 from "../pages/Test8/Test8";
 import Test9 from "../pages/Test9/Test9";
 import Test10 from "../pages/Test10/Test10";
+import Results from "../pages/Results/Results";
 import { isDesktop } from "react-device-detect";
 import { useEffect, useState } from "react";
 import { useTestMetrics } from "../../contexts/TestMetricsContext";
@@ -45,6 +46,8 @@ function renderPage(page: Page) {
         return <Test9 />
     if (page === Page.Test10)
         return <Test10 />
+    if (page === Page.Results)
+        return <Results />
     else
         return <div>Error page routing!</div>
 }
@@ -72,7 +75,7 @@ function PageOrchestrator() {
         setDebugPageInput(value);
         
         const pageNum = parseInt(value, 10);
-        if (!isNaN(pageNum) && pageNum >= 0 && pageNum <= Page.Test10) {
+        if (!isNaN(pageNum) && pageNum >= 0 && pageNum <= Page.Results) {
             setPage(pageNum as Page);
         }
     };
@@ -98,7 +101,7 @@ function PageOrchestrator() {
                         value={debugPageInput}
                         onChange={handleDebugPageChange}
                         min="0"
-                        max={Page.Test10}
+                        max={Page.Results}
                         style={{
                             padding: '0.5rem',
                             fontSize: '0.875rem',
@@ -109,7 +112,7 @@ function PageOrchestrator() {
                             width: '100px',
                             outline: 'none'
                         }}
-                        placeholder={`0-${Page.Test10}`}
+                        placeholder={`0-${Page.Results}`}
                     />
                     <div style={{ color: '#ff99ff', fontSize: '0.75rem', marginTop: '0.25rem' }}>
                         Current: {page} ({Object.keys(Page).find(key => Page[key as keyof typeof Page] === page)})

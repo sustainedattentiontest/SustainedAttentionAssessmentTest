@@ -11,7 +11,8 @@ enum Page {
     Test7,
     Test8,
     Test9,
-    Test10
+    Test10,
+    Results
 }
 
 export default Page;
