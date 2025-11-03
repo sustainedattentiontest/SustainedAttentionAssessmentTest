@@ -1,6 +1,6 @@
 import {MAX_ROUNDS, ROUND_INTERVAL_IN_MS, MAX_TOTAL_MISSES_FOR_TRIAL} from "../../../constants";
 import {useState, useEffect, useRef} from "react";
-import './NegativeNumberTestRuntime.css';
+import styles from './NegativeNumberTestRuntime.module.css';
 import { useSetTestMetrics } from '../../../contexts/TestMetricsContext';
 
 type NumberType = '1' | '2' | '3' | '4';
@@ -689,71 +689,71 @@ function NegativeNumberTestRuntime({ trial, onComplete, goStimulusNumber, testKe
 
     const renderNumber = () => {
         if (!currentNumber) return null;
-        return <div className="number">{currentNumber}</div>;
+        return <div className={styles.number}>{currentNumber}</div>;
     };
 
     const isDev = process.env.REACT_APP_IS_DEV === 'true';
 
     return (
-        <div className="number-runtime-container">
+        <div className={styles['number-runtime-container']}>
             {(countdown !== null || countdownText !== null) && (
-                <div className="countdown-overlay">
+                <div className={styles['countdown-overlay']}>
                     {countdownText && (
-                        <div className="countdown-prefix-text">{countdownText}</div>
+                        <div className={styles['countdown-prefix-text']}>{countdownText}</div>
                     )}
                     {countdown !== null && (
-                        <div className="countdown-text">{countdown}</div>
+                        <div className={styles['countdown-text']}>{countdown}</div>
                     )}
                 </div>
             )}
             {completionMessage && (
-                <div className="countdown-overlay">
-                    <div className="completion-message">{completionMessage}</div>
+                <div className={styles['countdown-overlay']}>
+                    <div className={styles['completion-message']}>{completionMessage}</div>
                 </div>
             )}
             {restartMessage && (
-                <div className="countdown-overlay">
-                    <div className="completion-message">{restartMessage}</div>
+                <div className={styles['countdown-overlay']}>
+                    <div className={styles['completion-message']}>{restartMessage}</div>
                 </div>
             )}
             {hasStarted && !completionMessage && !restartMessage && (
-                <div className="number-wrapper">
-                    <div className="small-circle"></div>
+                <div className={styles['number-wrapper']}>
+                    <div className={styles['small-circle']}></div>
                     {renderNumber()}
-                    <div className="small-circle"></div>
+                    <div className={styles['small-circle']}></div>
                 </div>
             )}
             {isDev && (
-                <div className="debug-menu">
-                    <h3 className="debug-menu-title">Debug: Metrics</h3>
-                    <div className="debug-menu-content">
-                        <div className="debug-stat">
-                            <span className="debug-label">Hits:</span>
-                            <span className="debug-value">{hits}</span>
+                <div className={styles['debug-menu']}>
+                    <h3 className={styles['debug-menu-title']}>Debug: Metrics</h3>
+                    <div className={styles['debug-menu-content']}>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Hits:</span>
+                            <span className={styles['debug-value']}>{hits}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Commission Misses:</span>
-                            <span className="debug-value">{commissionMisses}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Commission Misses:</span>
+                            <span className={styles['debug-value']}>{commissionMisses}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Omission Misses:</span>
-                            <span className="debug-value">{omissionMisses}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Omission Misses:</span>
+                            <span className={styles['debug-value']}>{omissionMisses}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Total Misses:</span>
-                            <span className="debug-value">{totalMisses}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Total Misses:</span>
+                            <span className={styles['debug-value']}>{totalMisses}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Round:</span>
-                            <span className="debug-value">{round}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Round:</span>
+                            <span className={styles['debug-value']}>{round}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Current Number:</span>
-                            <span className="debug-value">{currentNumber || 'None'}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Current Number:</span>
+                            <span className={styles['debug-value']}>{currentNumber || 'None'}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">No-Go Stimulus:</span>
-                            <span className="debug-value">{goStimulusNumber}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>No-Go Stimulus:</span>
+                            <span className={styles['debug-value']}>{goStimulusNumber}</span>
                         </div>
                         {Object.keys(hitReactionTimesRef.current).length > 0 && (
                             <div style={{ marginTop: '0.75rem', borderTop: '1px solid #ffff00', paddingTop: '0.75rem' }}>

@@ -1,6 +1,6 @@
 import {MAX_ROUNDS, ROUND_INTERVAL_IN_MS, MAX_TOTAL_MISSES_FOR_TRIAL} from "../../../constants";
 import {useState, useEffect, useRef} from "react";
-import './NegativeShapeTestRuntime.css';
+import styles from './NegativeShapeTestRuntime.module.css';
 import { useSetTestMetrics } from '../../../contexts/TestMetricsContext';
 
 type ShapeType = 'circle' | 'star' | 'triangle' | 'square';
@@ -692,13 +692,13 @@ function NegativeShapeTestRuntime({ trial, onComplete, goStimulusShape, testKey 
 
         switch (currentShape) {
             case 'circle':
-                return <div className="shape circle"></div>;
+                return <div className={`${styles.shape} ${styles.circle}`}></div>;
             case 'star':
-                return <div className="shape star">★</div>;
+                return <div className={`${styles.shape} ${styles.star}`}>★</div>;
             case 'triangle':
-                return <div className="shape triangle"></div>;
+                return <div className={`${styles.shape} ${styles.triangle}`}></div>;
             case 'square':
-                return <div className="shape square"></div>;
+                return <div className={`${styles.shape} ${styles.square}`}></div>;
             default:
                 return null;
         }
@@ -707,65 +707,65 @@ function NegativeShapeTestRuntime({ trial, onComplete, goStimulusShape, testKey 
     const isDev = process.env.REACT_APP_IS_DEV === 'true';
 
     return (
-        <div className="test1-runtime-container">
+        <div className={styles['test1-runtime-container']}>
             {(countdown !== null || countdownText !== null) && (
-                <div className="countdown-overlay">
+                <div className={styles['countdown-overlay']}>
                     {countdownText && (
-                        <div className="countdown-prefix-text">{countdownText}</div>
+                        <div className={styles['countdown-prefix-text']}>{countdownText}</div>
                     )}
                     {countdown !== null && (
-                        <div className="countdown-text">{countdown}</div>
+                        <div className={styles['countdown-text']}>{countdown}</div>
                     )}
                 </div>
             )}
             {completionMessage && (
-                <div className="countdown-overlay">
-                    <div className="completion-message">{completionMessage}</div>
+                <div className={styles['countdown-overlay']}>
+                    <div className={styles['completion-message']}>{completionMessage}</div>
                 </div>
             )}
             {restartMessage && (
-                <div className="countdown-overlay">
-                    <div className="completion-message">{restartMessage}</div>
+                <div className={styles['countdown-overlay']}>
+                    <div className={styles['completion-message']}>{restartMessage}</div>
                 </div>
             )}
             {hasStarted && !completionMessage && !restartMessage && (
-                <div className="shape-wrapper">
-                    <div className="small-circle"></div>
+                <div className={styles['shape-wrapper']}>
+                    <div className={styles['small-circle']}></div>
                     {renderShape()}
-                    <div className="small-circle"></div>
+                    <div className={styles['small-circle']}></div>
                 </div>
             )}
             {isDev && (
-                <div className="debug-menu">
-                    <h3 className="debug-menu-title">Debug: Metrics</h3>
-                    <div className="debug-menu-content">
-                        <div className="debug-stat">
-                            <span className="debug-label">Hits:</span>
-                            <span className="debug-value">{hits}</span>
+                <div className={styles['debug-menu']}>
+                    <h3 className={styles['debug-menu-title']}>Debug: Metrics</h3>
+                    <div className={styles['debug-menu-content']}>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Hits:</span>
+                            <span className={styles['debug-value']}>{hits}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Commission Misses:</span>
-                            <span className="debug-value">{commissionMisses}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Commission Misses:</span>
+                            <span className={styles['debug-value']}>{commissionMisses}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Omission Misses:</span>
-                            <span className="debug-value">{omissionMisses}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Omission Misses:</span>
+                            <span className={styles['debug-value']}>{omissionMisses}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Total Misses:</span>
-                            <span className="debug-value">{totalMisses}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Total Misses:</span>
+                            <span className={styles['debug-value']}>{totalMisses}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Round:</span>
-                            <span className="debug-value">{round}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Round:</span>
+                            <span className={styles['debug-value']}>{round}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">Current Shape:</span>
-                            <span className="debug-value">{currentShape || 'None'}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>Current Shape:</span>
+                            <span className={styles['debug-value']}>{currentShape || 'None'}</span>
                         </div>
-                        <div className="debug-stat">
-                            <span className="debug-label">No-Go Stimulus:</span>
-                            <span className="debug-value">{goStimulusShape}</span>
+                        <div className={styles['debug-stat']}>
+                            <span className={styles['debug-label']}>No-Go Stimulus:</span>
+                            <span className={styles['debug-value']}>{goStimulusShape}</span>
                         </div>
                         {Object.keys(hitReactionTimesRef.current).length > 0 && (
                             <div style={{ marginTop: '0.75rem', borderTop: '1px solid #ff66ff', paddingTop: '0.75rem' }}>
