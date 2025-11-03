@@ -35,13 +35,50 @@
     gap: 1rem;
 }
 
+.debug-view-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #ff00ff;
+    padding-bottom: 0.5rem;
+    gap: 1rem;
+}
+
 .debug-view-section-title {
     font-size: 24px;
     font-weight: 600;
     color: #ff00ff;
     text-shadow: 0 0 10px rgba(255, 0, 255, 0.6);
-    border-bottom: 2px solid #ff00ff;
-    padding-bottom: 0.5rem;
+    margin: 0;
+}
+
+.debug-view-export-button {
+    background-color: rgba(255, 0, 255, 0.1);
+    border: 2px solid #ff00ff;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    color: #ff00ff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.6);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.debug-view-export-button:hover:not(:disabled) {
+    background-color: rgba(255, 0, 255, 0.2);
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.debug-view-export-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.debug-view-export-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .debug-view-textarea {
@@ -119,8 +156,18 @@
         font-size: 36px;
     }
     
+    .debug-view-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
     .debug-view-section-title {
         font-size: 20px;
+    }
+    
+    .debug-view-export-button {
+        width: 100%;
+        margin-top: 0.5rem;
     }
     
     .debug-view-textarea {
