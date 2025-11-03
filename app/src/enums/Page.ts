@@ -12,7 +12,8 @@ enum Page {
     Test8,
     Test9,
     Test10,
-    Results
+    Results,
+    DebugView
 }
 
 export default Page;

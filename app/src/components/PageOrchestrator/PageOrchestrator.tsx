@@ -14,6 +14,7 @@ import Test8 from "../pages/Test8/Test8";
 import Test9 from "../pages/Test9/Test9";
 import Test10 from "../pages/Test10/Test10";
 import Results from "../pages/Results/Results";
+import DebugView from "../pages/DebugView/DebugView";
 import { isDesktop } from "react-device-detect";
 import { useEffect, useState } from "react";
 import { useTestMetrics } from "../../contexts/TestMetricsContext";
@@ -48,6 +49,8 @@ function renderPage(page: Page) {
         return <Test10 />
     if (page === Page.Results)
         return <Results />
+    if (page === Page.DebugView)
+        return <DebugView />
     else
         return <div>Error page routing!</div>
 }
@@ -75,7 +78,8 @@ function PageOrchestrator() {
         setDebugPageInput(value);
         
         const pageNum = parseInt(value, 10);
-        if (!isNaN(pageNum) && pageNum >= 0 && pageNum <= Page.Results) {
+        const maxPage = process.env.REACT_APP_IS_DEV === 'true' ? Page.DebugView : Page.Results;
+        if (!isNaN(pageNum) && pageNum >= 0 && pageNum <= maxPage) {
             setPage(pageNum as Page);
         }
     };
