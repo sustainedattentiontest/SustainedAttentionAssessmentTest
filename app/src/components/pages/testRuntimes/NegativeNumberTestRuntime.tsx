@@ -22,7 +22,8 @@ const generateTrialSequence = (length: number, goStimulusNumber: NumberType): Nu
         let availableNumbers = numbers;
         if (lastNumber !== null) {
             // Exclude the last number to prevent consecutive duplicates
-            availableNumbers = numbers.filter(n => n !== lastNumber);
+            const excludedNumber = lastNumber;
+            availableNumbers = numbers.filter((n) => n !== excludedNumber);
         }
         const randomIndex = Math.floor(Math.random() * availableNumbers.length);
         const selectedNumber = availableNumbers[randomIndex];
@@ -559,7 +560,7 @@ function NegativeNumberTestRuntime({ trial, onComplete, goStimulusNumber, testKe
                 clearInterval(intervalRef.current);
             }
         };
-    }, [trial, hasStarted, onComplete, goStimulusNumber, testKey, setTestMetrics]);
+    }, [trial, hasStarted, onComplete, goStimulusNumber, testKey, setTestMetrics, resetTrial]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -658,7 +659,7 @@ function NegativeNumberTestRuntime({ trial, onComplete, goStimulusNumber, testKe
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [trial, onComplete, goStimulusNumber]);
+    }, [trial, onComplete, goStimulusNumber, resetTrial]);
 
     // Get current number based on round
     let currentNumber: NumberType | null = null;

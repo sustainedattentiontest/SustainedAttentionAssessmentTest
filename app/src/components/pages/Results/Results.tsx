@@ -13,7 +13,6 @@ function Results() {
     const [notification, setNotification] = useState<string | null>(null);
     const hasSubmittedRef = useRef(false);
     const isSubmittingRef = useRef(false);
-    const isDev = process.env.REACT_APP_IS_DEV === 'true';
 
     // Merge contexts and submit to database - run once when component mounts
     useEffect(() => {
@@ -81,7 +80,7 @@ function Results() {
                     throw new Error(`Failed to submit results: ${response.status} ${response.statusText}`);
                 }
 
-                const result = await response.json();
+                await response.json();
                 hasSubmittedRef.current = true;
                 setNotification(`Results have been reported! Key: ${key}`);
                 

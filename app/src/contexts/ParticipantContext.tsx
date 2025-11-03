@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { QuestionsDAO } from '../dao/QuestionsDAO';
 
 interface ParticipantData {
     adhdDiagnosed: string;

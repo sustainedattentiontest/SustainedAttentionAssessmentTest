@@ -67,7 +67,7 @@ function PageOrchestrator() {
         if (!isDev && !isDesktop) {
             setPage(Page.DesktopOnly);
         }
-    }, [setPage]);
+    }, [setPage, isDev, isDesktop]);
 
     useEffect(() => {
         setDebugPageInput(page.toString());

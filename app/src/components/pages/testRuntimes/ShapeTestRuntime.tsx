@@ -22,7 +22,8 @@ const generateTrialSequence = (length: number, goStimulusShape: ShapeType): Shap
         let availableShapes = shapes;
         if (lastShape !== null) {
             // Exclude the last shape to prevent consecutive duplicates
-            availableShapes = shapes.filter(s => s !== lastShape);
+            const excludedShape = lastShape;
+            availableShapes = shapes.filter((s) => s !== excludedShape);
         }
         const randomIndex = Math.floor(Math.random() * availableShapes.length);
         const selectedShape = availableShapes[randomIndex];
@@ -336,7 +337,7 @@ function ShapeTestRuntime({ trial, onComplete, goStimulusShape, testKey }: Shape
                 clearInterval(intervalRef.current);
             }
         };
-    }, [trial, hasStarted, onComplete, goStimulusShape, testKey, setTestMetrics]);
+    }, [trial, hasStarted, onComplete, goStimulusShape, testKey, setTestMetrics, resetTrial]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -433,7 +434,7 @@ function ShapeTestRuntime({ trial, onComplete, goStimulusShape, testKey }: Shape
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [trial, onComplete, goStimulusShape]);
+    }, [trial, onComplete, goStimulusShape, resetTrial]);
 
     // Get current shape based on round
     let currentShape: ShapeType | null = null;
